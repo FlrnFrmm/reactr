@@ -2,7 +2,7 @@ pub mod method;
 
 use std::collections::BTreeMap;
 
-use crate::runnable::HostErr;
+use crate::error::Error;
 use crate::ffi;
 use crate::STATE;
 use method::Method;
@@ -11,19 +11,19 @@ extern {
 	fn fetch_url(method: i32, url_pointer: *const u8, url_size: i32, body_pointer: *const u8, body_size: i32, ident: i32) -> i32;
 }
 
-pub fn get(url: &str, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, HostErr> {
+pub fn get(url: &str, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, Error> {
 	do_request(Method::GET.into(), url, None, headers)
 }
 
-pub fn post(url: &str, body: Option<Vec<u8>>, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, HostErr> {
+pub fn post(url: &str, body: Option<Vec<u8>>, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, Error> {
 	do_request(Method::POST.into(), url, body, headers)
 }
 
-pub fn patch(url: &str, body: Option<Vec<u8>>, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, HostErr> {
+pub fn patch(url: &str, body: Option<Vec<u8>>, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, Error> {
 	do_request(Method::PATCH.into(), url, body, headers)
 }
 
-pub fn delete(url: &str, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, HostErr> {
+pub fn delete(url: &str, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, Error> {
 	do_request(Method::DELETE.into(), url, None, headers)
 }
 
@@ -33,7 +33,7 @@ pub fn delete(url: &str, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8
 ///
 /// > Remark: The URL gets encoded with headers added on the end, seperated by ::
 /// > eg. https://google.com/somepage::authorization:bearer qdouwrnvgoquwnrg::anotherheader:nicetomeetyou
-fn do_request(method: i32, url: &str, body: Option<Vec<u8>>, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, HostErr> {
+fn do_request(method: i32, url: &str, body: Option<Vec<u8>>, headers: Option<BTreeMap<&str, &str>>) -> Result<Vec<u8>, Error> {
 	let header_string = render_header_string(headers);
 	
 	let url_string = match header_string {

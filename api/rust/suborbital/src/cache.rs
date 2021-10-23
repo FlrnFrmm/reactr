@@ -1,5 +1,5 @@
 use crate::ffi;
-use crate::runnable::HostErr;
+use crate::error::Error;
 use crate::STATE;
 
 extern {
@@ -19,7 +19,7 @@ pub fn set(key: &str, val: Vec<u8>, ttl: i32) {
 /// Executes the request via FFI
 ///
 /// Then retreives the result from the host and returns it
-pub fn get(key: &str) -> Result<Vec<u8>, HostErr> {
+pub fn get(key: &str) -> Result<Vec<u8>, Error> {
 	let result_size = unsafe { cache_get(key.as_ptr(), key.len() as i32, STATE.ident) };
 	
 	ffi::result(result_size)

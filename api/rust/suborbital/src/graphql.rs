@@ -1,4 +1,4 @@
-use crate::runnable::HostErr;
+use crate::error::Error;
 use crate::STATE;
 use crate::ffi;
 
@@ -7,7 +7,7 @@ extern {
 }
 
 /// Retreives the result from the host and returns it
-pub fn query(endpoint: &str, query: &str) -> Result<Vec<u8>, HostErr> {
+pub fn query(endpoint: &str, query: &str) -> Result<Vec<u8>, Error> {
 	let endpoint_size = endpoint.len() as i32;
 	let query_size = query.len() as i32;
 

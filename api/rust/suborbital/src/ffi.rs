@@ -1,6 +1,6 @@
 use std::slice;
 
-use crate::runnable::HostErr;
+use crate::error::Error;
 use crate::util;
 use crate::STATE;
 
@@ -8,13 +8,13 @@ extern {
 	fn get_ffi_result(pointer: *const u8, ident: i32) -> i32;
 }
 
-pub (crate) fn result(size: i32) -> Result<Vec<u8>, HostErr> {
+pub (crate) fn result(size: i32) -> Result<Vec<u8>, Error> {
 	let mut alloc_size = size;
 
 	// FFI functions return negative values when an error occurs
 	if size < 0 {
 		if size == -1 {
-			return Err(HostErr::new("unknown error returned from host"))
+			return Err(Error::new_host_error("unknown error returned from host"))
 		}
 
 		alloc_size = -size
@@ -30,7 +30,7 @@ pub (crate) fn result(size: i32) -> Result<Vec<u8>, HostErr> {
 
 	// check if it was successful, and then re-build the memory
 	if code != 0 {
-		return Err(HostErr::new("unknown error returned from host"));
+		return Err(Error::new_host_error("unknown error returned from host"));
 	}
 
 	let data: &[u8] = unsafe {
@@ -39,7 +39,7 @@ pub (crate) fn result(size: i32) -> Result<Vec<u8>, HostErr> {
 
 	if size < 0 {
 		let msg = Vec::from(data);
-		return Err(HostErr::new(util::to_string(msg).as_str()))
+		return Err(Error::new_host_error(util::to_string(msg)))
 	}
 
 	Ok(Vec::from(data))

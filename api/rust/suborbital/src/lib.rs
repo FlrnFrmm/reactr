@@ -1,3 +1,4 @@
+pub mod error;
 pub mod runnable;
 pub mod graphql;
 pub mod http;

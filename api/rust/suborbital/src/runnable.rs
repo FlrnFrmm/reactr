@@ -2,6 +2,7 @@ pub mod default_runnable;
 
 use std::mem;
 use std::slice;
+use crate::error::Error;
 use crate::util;
 use crate::STATE;
 
@@ -10,34 +11,8 @@ extern {
 	fn return_error(code: i32, result_pointer: *const u8, result_size: i32, ident: i32);
 }
 
-pub struct RunErr {
-	pub code: i32,
-	pub message: String,
-}
-
-impl RunErr {
-	pub fn new(code: i32, msg: &str) -> Self {
-		RunErr {
-			code,
-			message: msg.into()
-		}
-	}
-}
-
-pub struct HostErr {
-	pub message: String,
-}
-
-impl HostErr {
-	pub fn new(msg: &str) -> Self {
-		HostErr {
-			message: String::from(msg)
-		}
-	}
-}
-
 pub trait Runnable {
-	fn run(&self, input: Vec<u8>) -> Result<Vec<u8>, RunErr>;
+	fn run(&self, input: Vec<u8>) -> Result<Vec<u8>, Error>;
 }
 
 pub fn use_runnable(runnable: &'static dyn Runnable) {
@@ -83,8 +58,16 @@ pub unsafe extern fn run_e(pointer: *const u8, size: i32, ident: i32) {
 	let result: Vec<u8> = match STATE.runnable.run(in_bytes) {
 		Ok(val) => val,
 		Err(e) => {
-			code = e.code;
-			util::to_vec(e.message)
+			match e {
+    			Error::Run { code: c, message } => {
+					code = c;
+					util::to_vec(message)
+				},
+    			Error::Host { message } => {
+					code = -1;
+					util::to_vec(message)
+				},
+			}
 		}
 	};
 
